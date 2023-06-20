@@ -7,11 +7,11 @@ const pipes = [
 ]
 
 let depth = 0;
-let paths : string[] = ['./']
+let paths : string[] = ['./folder/']
 
 console.log(pipes[0]);
 
-function readDir(entryPath : string[], depth : number, lastFolder = false) {
+function readDir(entryPath : string[], depth : number, inLastFolder = false, lastInFolder = false) {
     const dirEntries : Deno.DirEntry[] = [];
     for (const dirEntry of Deno.readDirSync(entryPath.join(''))) {
         dirEntries.push(dirEntry);
@@ -20,16 +20,18 @@ function readDir(entryPath : string[], depth : number, lastFolder = false) {
         
         if (dir.isFile) {
             if (dirIndex < dirs.length - 1) {
-                if (lastFolder) {
-                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[2]}${dir.name}`);
+                lastInFolder = false;
+                if (inLastFolder) {
+                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[2]}${dir.name}`, inLastFolder, lastInFolder);
                 } else {
-                    console.log(`${pipes[1].repeat(depth)}${pipes[2]}${dir.name}`);
+                    console.log(`${pipes[1].repeat(depth)}${pipes[2]}${dir.name}`, inLastFolder, lastInFolder);
                 }
             } else {
-                if (lastFolder) {
-                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[3]}${dir.name}`);
+                lastInFolder = true;
+                if (inLastFolder) {
+                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[3]}${dir.name}`, inLastFolder, lastInFolder);
                 } else {
-                    console.log(`${pipes[1].repeat(depth)}${pipes[3]}${dir.name}`);
+                    console.log(`${pipes[1].repeat(depth)}${pipes[3]}${dir.name}`, inLastFolder, lastInFolder);
                 }
             }
         } else
@@ -38,22 +40,24 @@ function readDir(entryPath : string[], depth : number, lastFolder = false) {
             entryPath.push(dir.name + '/');
 
             if (dirIndex < dirs.length - 1) {
-                if (lastFolder) {
-                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[2]}[${dir.name}]`);
+                lastInFolder = false;
+                if (inLastFolder) {
+                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[2]}[${dir.name}]`, inLastFolder, lastInFolder);
                 } else {
-                    console.log(`${pipes[4].repeat(depth)}${pipes[2]}[${dir.name}]`);
+                    console.log(`${pipes[4].repeat(depth)}${pipes[2]}[${dir.name}]`, inLastFolder, lastInFolder);
                 }
-                lastFolder = false;
+                inLastFolder = false;
             } else {
-                if (lastFolder) {
-                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[3]}[${dir.name}]`);
+                lastInFolder = true;
+                if (inLastFolder) {
+                    console.log(`${pipes[1]}${pipes[4].repeat(depth - 1)}${pipes[3]}[${dir.name}]`, inLastFolder, lastInFolder);
                 } else {
-                    console.log(`${pipes[1].repeat(depth)}${pipes[3]}[${dir.name}]`);
+                    console.log(`${pipes[1].repeat(depth)}${pipes[3]}[${dir.name}]`, inLastFolder, lastInFolder);
                 }
-                lastFolder = true;
+                inLastFolder = true;
             }
             
-            readDir(entryPath, depth + 1, lastFolder);
+            readDir(entryPath, depth + 1, inLastFolder);
 
             entryPath.pop();
         }
@@ -61,3 +65,12 @@ function readDir(entryPath : string[], depth : number, lastFolder = false) {
 }
 
 readDir(paths, depth);
+
+function generateFileString(
+    name : string,
+    depth : number,
+    isLastFile : boolean,
+    isParentLastFolder : boolean
+) {
+    
+}
