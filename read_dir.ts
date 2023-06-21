@@ -1,32 +1,51 @@
-import { generateString } from "./generate_string.ts";
+import { generateNameString } from "./generate_name_string.ts";
+import { generatePathString } from "./generate_path_string.ts";
 
 let treeString = ''
-let files = 0
+const dirProperties = {
+    files: 0,
+    symlinks: 0,
+    directories: 0
+}
 
-export function readDir(entryPath : string[], color = true, depths : boolean[] = []) {
-    const dirEntries : Deno.DirEntry[] = [];
-    
-    for (const dirEntry of Deno.readDirSync(entryPath.join(''))) {
-        dirEntries.push(dirEntry);
-    }
-    dirEntries.forEach((dir, dirIndex, dirs) => {
+export function readDir(pathEntries : string[], indents : boolean[] = []) {
+
+    [...Deno.readDirSync(pathEntries.join(''))].forEach((dirEntry, dirIndex, dirs) => {
         const isLast = (dirIndex == dirs.length - 1);
 
-        treeString = treeString + generateString(dir.name, depths, dir.isFile, dir.isDirectory, dir.isSymlink, isLast, color) + '\n';
+        treeString = treeString + generatePathString(indents, {
+            straight: '│   ',
+            empty: '    '
+        }) + generateNameString(
+            dirEntry.name,
+            isLast,
+            {
+                isFile: dirEntry.isFile,
+                isDirectory: dirEntry.isDirectory,
+                isSymlink: dirEntry.isSymlink
+            },
+            {
+                end: '└─ ',
+                breakout: '├─ '
+            }
+        ) + '\n';
 
-        if (dir.isFile) {
-            files++;
+        if (dirEntry.isFile) {
+            dirProperties.files++
         }
-
-        if (dir.isDirectory) {
-            depths.push(!isLast);
-            entryPath.push(`${dir.name}/`);
-            readDir(entryPath, color, depths);
+        if (dirEntry.isSymlink) {
+            dirProperties.symlinks++
+        }
+        if (dirEntry.isDirectory) {
+            dirProperties.directories++
+            indents.push(!isLast);
+            pathEntries.push(`${dirEntry.name}/`);
+            readDir(pathEntries, indents);
         }
     })
 
-    depths.pop();
-    entryPath.pop();
+    indents.pop();
+    pathEntries.pop();
 
-    return {treeString, files};
+    return {treeString, dirProperties};
 }
