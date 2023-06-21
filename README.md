@@ -4,7 +4,12 @@ Generate a tree of all folders/files/symlinks.
 ```ts
 import { tree } from "./tree.ts";
 
-console.log(tree('./', true).treeString);
+const dirTree = tree('./');
+
+console.log(dirTree.treeString);
+console.log('F', dirTree.files);
+console.log('S', dirTree.symlinks);
+console.log('D', dirTree.directories);
 ```
 ```
 ├─ [.vscode]
@@ -19,6 +24,10 @@ console.log(tree('./', true).treeString);
 │       └─ "tree.ts"
 ├─ "main.ts"
 └─ "tsconfig.json"
+
+F 8
+S 0
+D 4
 ```
 
 ## TODO
