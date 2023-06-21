@@ -1,57 +1,68 @@
-const pipes = [
-    '.  ',
-    '│  ',
-    '├─ ',
-    '└─ ',
-    '   '
-]
+const pipes = {
+    ROOT: '\x9b31m.  \x9b0m',
+    STRAIGHT: '\x9b38;5;250m│   \x9b0m',
+    BREAKOUT: '\x9b38;5;250m├─ \x9b0m',
+    END: '\x9b38;5;250m└─ \x9b0m',
+    EMPTY: '    '
+} as const
 
-let depth : boolean[] = [];
-let paths : string[] = ['../ESD-Scanner/']
+function fileString(name : string) : string {
+    return `\x9b32m"${name}"\x9b0m`
+}
 
-console.log(pipes[0]);
+function directoryString(name : string) : string {
+    return `\x9b1;34m[${name}]\x9b0;22m`
+}
+
+function symlinkString(name : string) : string {
+    return `\x9b35m<${name}>\x9b0m`
+}
+
+const rootPath : string[] = ['../Fresh/']
+let files = 0;
+
+console.log(pipes.ROOT);
 
 function generateString(
     name : string,
-    depths : boolean[],
+    parents : boolean[],
     isFile : boolean,
     isDirectory : boolean,
     isSymlink : boolean,
     isLast : boolean,
 ) : string {
     let indentString = ''
-    depths.forEach((depth) => {
-        if (depth) {
-            indentString += '│  ';
+    parents.forEach((parent) => {
+        if (parent) {
+            indentString += pipes.STRAIGHT;
         } else {
-            indentString += '   ';
+            indentString += pipes.EMPTY;
         }
     })
 
     if (isLast) {
-        indentString += '└─ ';
+        indentString += pipes.END;
     } else {
-        indentString += '├─ ';
+        indentString += pipes.BREAKOUT;
     }
 
     if (isFile) {
-        indentString += `"${name}"`;
+        indentString += fileString(name);
     }
 
     if (isDirectory) {
-        indentString += `[${name}]`;
+        indentString += directoryString(name);
     }
 
     if (isSymlink) {
-        indentString += `<${name}>`;
+        indentString += symlinkString(name);
     }
 
-    return indentString
+    return indentString;
 }
 
 function readDir(entryPath : string[], depths : boolean[] = []) {
     const dirEntries : Deno.DirEntry[] = [];
-    // console.log('Reading dir:', entryPath.join(''));
     
     for (const dirEntry of Deno.readDirSync(entryPath.join(''))) {
         dirEntries.push(dirEntry);
@@ -61,18 +72,21 @@ function readDir(entryPath : string[], depths : boolean[] = []) {
 
         console.log(generateString(dir.name, depths, dir.isFile, dir.isDirectory, dir.isSymlink, isLast));
 
+        if (dir.isFile) {
+            files++;
+        }
+
         if (dir.isDirectory) {
             depths.push(!isLast);
             entryPath.push(`${dir.name}/`);
             readDir(entryPath, depths);
         }
-
-        
-        
     })
 
     depths.pop();
     entryPath.pop();
 }
 
-readDir(paths, depth);
+readDir(rootPath, []);
+
+console.log(`Files: ${files}`);
